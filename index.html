@@ -43,24 +43,14 @@
             content: '';
             position: fixed;
             inset: 0;
-            z-index: 0;
+            z-index: -1;
             pointer-events: none;
             opacity: 0.25;
             background-image: radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px);
             background-size: 24px 24px;
         }
 
-        /* Film grain */
-        body::after {
-            content: '';
-            position: fixed;
-            inset: 0;
-            z-index: 10000;
-            pointer-events: none;
-            opacity: 0.02;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-            background-size: 200px;
-        }
+        /* Film grain - kept subtle and non-blocking */
 
         /* Cursor glow */
         .cursor-glow {
@@ -1000,16 +990,22 @@
         glow.style.opacity = '1';
     });
 
-    // Scroll reveal
-    const obs = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-                obs.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
-    document.querySelectorAll('.anim').forEach(el => obs.observe(el));
+    // Scroll reveal - robust version
+    const animEls = document.querySelectorAll('.anim');
+    if ('IntersectionObserver' in window) {
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    obs.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0, rootMargin: '0px 0px 50px 0px' });
+        animEls.forEach(el => obs.observe(el));
+    } else {
+        // Fallback: just show everything
+        animEls.forEach(el => el.classList.add('visible'));
+    }
 
     // Language ring animation
     const ringObs = new IntersectionObserver(entries => {
